@@ -1,33 +1,48 @@
 package controllers
 
 import (
-	"context"
-	"encoding/json"
+	// "context"
 	"encoding/csv"
-	"net/http"
-	"fmt"
-	// "strconv"
+
 	// "log"
 
 	"time"
-	"go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/bson"
+	// "go.mongodb.org/mongo-driver/mongo"
+	// "go.mongodb.org/mongo-driver/bson"
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/MaximillianoNico/COVID-19-API/pkg/e"
+	app "github.com/MaximillianoNico/COVID-19-API/pkg/formatter"
 )
 
-func readData (url string) ([][] string, error) {
-	resp, err := http.Get(url)
+type countryList struct {
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	LangId string `json:"langId`
+}
 
+type Report struct {
+	Province   string `json:"province"`
+	Country    string `json:"country"`
+	LastUpdate string `json:"last_update"`
+	Confirmed  string `json:"confirmed"`
+	Deaths     int    `json:"death"`
+	Recovered  int    `json:"recovered"`
+}
+
+func GetDataCsvToJSON(url string) ([][]string, error) {
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 
 	defer resp.Body.Close()
-
 	reader := csv.NewReader(resp.Body)
-	reader.Comma = ';'
-
+	// reader.Comma = ';'
 	data, err := reader.ReadAll()
-	
 	if err != nil {
 		return nil, err
 	}
@@ -35,35 +50,76 @@ func readData (url string) ([][] string, error) {
 	return data, nil
 }
 
-func filterDataCovid19 (dateStart string, dateEndtime string, country string) {
-	evStart := time.Date(dateStart)
-	evEnd := time.Date(dateEndtime)
+// @Summary Basic Route
+// @Produce  json
+// @Success 200 {object} app.Response
+// @Failure 500 {object} app.Response
+// @Router /ping [get]
+func GetAll(c *gin.Context) {
+	appG := app.Gin{C: c}
+	// var reports Report
+	var reportCovid []Report
+	t := time.Now()
+	formatted := fmt.Sprintf("%02d-%02d-%02d", t.Month(), t.Day(), t.Year())
 
-	diffDay := evEnd.Sub(evStart).Hours() / 24
+	fmt.Println(formatted)
 
-	urlIFilter := `https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/01-22-2020.csv`
-	res, err := readData()
+	urlIFilter := "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + formatted + ".csv"
+
+	resp, err := GetDataCsvToJSON(urlIFilter)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for idx, row := range resp {
+		if idx == 0 {
+			continue
+		}
+		dataConvert := Report{
+			Province:   row[0],
+			Country:    row[1],
+			LastUpdate: row[2],
+		}
+		reportCovid = append(reportCovid, dataConvert)
+	}
+	payload := reportCovid
+	if len(reportCovid) == 0 {
+		payload = []Report{}
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, "Success", payload)
 }
 
-func GetDataCovid (w http.ResponseWriter, r *http.Request) {
-	data := [] struct {
-        Name string
-        Age  int
-    } {
-        { "Richard Grayson", 24 },
-        { "Jason Todd", 23 },
-        { "Tim Drake", 22 },
-        { "Damian Wayne", 21 },
+func GetStatistic(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	country := c.Param("city")
+
+	appG.Response(http.StatusOK, e.SUCCESS, "Success", map[string]string{
+		"country": country,
+		"message": "get data covid-19 for country " + country,
+	})
+}
+
+func GetCountryList(c *gin.Context) {
+	appG := app.Gin{C: c}
+	// country := c.Param("country")
+
+	// countryLangId := country
+
+	countries := []countryList{
+		{
+			Id:     "1",
+			Name:   "Indonesia",
+			LangId: "ID",
+		},
+		{
+			Id:     "2",
+			Name:   "English",
+			LangId: "EN",
+		},
 	}
-	
-	jsonInBytes, err := json.Marshal(data)
 
-	if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	fmt.Println(countries)
 
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(jsonInBytes)
-	
+	appG.Response(http.StatusOK, e.SUCCESS, "Success", countries)
 }
