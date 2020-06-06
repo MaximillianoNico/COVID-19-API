@@ -3,9 +3,7 @@ package controllers
 import (
 	// "context"
 	"encoding/csv"
-
-	// "log"
-
+	"strconv"
 	"time"
 	// "go.mongodb.org/mongo-driver/mongo"
 	// "go.mongodb.org/mongo-driver/bson"
@@ -17,6 +15,11 @@ import (
 	"github.com/MaximillianoNico/COVID-19-API/pkg/e"
 	app "github.com/MaximillianoNico/COVID-19-API/pkg/formatter"
 )
+
+type SearchType struct {
+	Datetime string `form:"datetime" json:"datetime"`
+	City     string `form:"city" json:"city"`
+}
 
 type countryList struct {
 	Id     string `json:"id"`
@@ -50,11 +53,11 @@ func GetDataCsvToJSON(url string) ([][]string, error) {
 	return data, nil
 }
 
-// @Summary Basic Route
+// @Summary GetAll
 // @Produce  json
 // @Success 200 {object} app.Response
 // @Failure 500 {object} app.Response
-// @Router /ping [get]
+// @Router /statistic/latest [get]
 func GetAll(c *gin.Context) {
 	appG := app.Gin{C: c}
 	// var reports Report
@@ -75,10 +78,15 @@ func GetAll(c *gin.Context) {
 		if idx == 0 {
 			continue
 		}
+		totalDeath, _ := strconv.Atoi(row[8])
+		totalRecovered, _ := strconv.Atoi(row[9])
 		dataConvert := Report{
-			Province:   row[0],
-			Country:    row[1],
-			LastUpdate: row[2],
+			Province:   row[2],
+			Country:    row[3],
+			LastUpdate: row[4],
+			Confirmed:  row[7],
+			Deaths:     totalDeath,
+			Recovered:  totalRecovered,
 		}
 		reportCovid = append(reportCovid, dataConvert)
 	}
@@ -87,6 +95,80 @@ func GetAll(c *gin.Context) {
 		payload = []Report{}
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, "Success", payload)
+}
+
+// @Summary Search Data COVID-19
+// @Produce  json
+// @Success 200 {object} app.Response
+// @Failure 500 {object} app.Response
+// @Router /statistic/search [get]
+func SearchData(c *gin.Context) {
+	appG := app.Gin{C: c}
+
+	var searchType SearchType
+	var reportCovid []Report
+
+	if c.Bind(&searchType) == nil {
+		var hasCity bool
+
+		if hasCity = false; searchType.City != "" {
+			hasCity = true
+		}
+
+		urlIFilter := "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + searchType.Datetime + ".csv"
+
+		resp, err := GetDataCsvToJSON(urlIFilter)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		for idx, row := range resp {
+			if idx == 0 {
+				continue
+			}
+
+			totalDeath, _ := strconv.Atoi(row[8])
+			totalRecovered, _ := strconv.Atoi(row[9])
+			if hasCity == true {
+				if row[3] == searchType.City {
+					dataConvert := Report{
+						Province:   row[2],
+						Country:    row[3],
+						LastUpdate: row[4],
+						Confirmed:  row[7],
+						Deaths:     totalDeath,
+						Recovered:  totalRecovered,
+					}
+					reportCovid = append(reportCovid, dataConvert)
+				}
+			} else {
+				dataConvert := Report{
+					Province:   row[2],
+					Country:    row[3],
+					LastUpdate: row[4],
+					Confirmed:  row[7],
+					Deaths:     totalDeath,
+					Recovered:  totalRecovered,
+				}
+				reportCovid = append(reportCovid, dataConvert)
+			}
+		}
+		payload := reportCovid
+		if len(reportCovid) == 0 {
+			payload = []Report{}
+		}
+
+		appG.Response(http.StatusOK, e.SUCCESS, "Success", payload)
+		return
+
+	}
+
+	appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, "Error", gin.H{
+		"message": "invalid parameter",
+	})
+
+	return
+
 }
 
 func GetStatistic(c *gin.Context) {

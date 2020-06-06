@@ -33,12 +33,34 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/ping": {
+        "/statistic/latest": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Basic Route",
+                "summary": "GetAll",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/statistic/search": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Search Data COVID-19",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -136,8 +158,8 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "localhost:8080",
-	BasePath:    "/api/v1",
+	Host:        "localhost:8081",
+	BasePath:    "/api",
 	Schemes:     []string{},
 	Title:       "Swagger Example API",
 	Description: "This is a sample server celler server.",

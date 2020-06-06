@@ -15,15 +15,37 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080",
-    "basePath": "/api/v1",
+    "host": "localhost:8081",
+    "basePath": "/api",
     "paths": {
-        "/ping": {
+        "/statistic/latest": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Basic Route",
+                "summary": "GetAll",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/app.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/statistic/search": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Search Data COVID-19",
                 "responses": {
                     "200": {
                         "description": "OK",

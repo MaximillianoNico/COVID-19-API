@@ -1,4 +1,4 @@
-basePath: /api/v1
+basePath: /api
 definitions:
   app.Response:
     properties:
@@ -9,7 +9,7 @@ definitions:
       msg:
         type: string
     type: object
-host: localhost:8080
+host: localhost:8081
 info:
   contact:
     email: support@swagger.io
@@ -23,7 +23,7 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /ping:
+  /statistic/latest:
     get:
       produces:
       - application/json
@@ -36,7 +36,21 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/app.Response'
-      summary: Basic Route
+      summary: GetAll
+  /statistic/search:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/app.Response'
+      summary: Search Data COVID-19
 securityDefinitions:
   ApiKeyAuth:
     in: header

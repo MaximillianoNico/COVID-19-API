@@ -18,7 +18,7 @@ func SwaggerInit() {
 	docs.SwaggerInfo.Title = "Swagger Example REST API"
 	docs.SwaggerInfo.Description = "This is a sample server."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.Host = "localhost:8081"
 	// docs.SwaggerInfo.BasePath = "/v2"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 }
@@ -29,7 +29,7 @@ func InitRouters() *gin.Engine {
 	r.Use(cors.Default())
 
 	// set endpoint for swagger documentation
-	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
+	url := ginSwagger.URL("http://localhost:8081/swagger/doc.json")
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	api := r.Group("/api")
@@ -37,7 +37,7 @@ func InitRouters() *gin.Engine {
 		apiStatistic := api.Group("/statistic")
 		{
 			apiStatistic.GET("/latest", controllers.GetAll)
-			apiStatistic.GET("/:date", controllers.GetAll)
+			apiStatistic.GET("/search", controllers.SearchData)
 			apiStatistic.GET("/filters/:city", controllers.GetStatistic)
 			apiStatistic.GET("/symptoms/:language", controllers.GetQuestionSymptoms)
 		}
