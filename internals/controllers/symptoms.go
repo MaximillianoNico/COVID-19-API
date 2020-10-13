@@ -30,7 +30,7 @@ func GetQuestionSymptoms(c *gin.Context) {
 
 	// countryLangId := country
 
-	Question := []question{
+	QuestionV1 := []question{
 		{
 			Id:    "1",
 			Value: "Do you have Fever?",
@@ -73,5 +73,5 @@ func GetQuestionSymptoms(c *gin.Context) {
 		},
 	}
 
-	appG.Response(http.StatusOK, e.SUCCESS, "Success", Question)
+	appG.Response(http.StatusOK, e.SUCCESS, "Success", QuestionV1)
 }
