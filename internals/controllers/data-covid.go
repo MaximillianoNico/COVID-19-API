@@ -90,6 +90,7 @@ func GetAll(c *gin.Context) {
 		}
 		reportCovid = append(reportCovid, dataConvert)
 	}
+	
 	payload := reportCovid
 	if len(reportCovid) == 0 {
 		payload = []Report{}
@@ -98,6 +99,7 @@ func GetAll(c *gin.Context) {
 }
 
 // @Summary Search Data COVID-19
+// @Param q query string false "name search by q"
 // @Produce  json
 // @Success 200 {object} app.Response
 // @Failure 500 {object} app.Response
